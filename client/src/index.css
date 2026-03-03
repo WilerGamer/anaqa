@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-cream text-navy font-sans antialiased;
+    font-size: 16px;
+  }
+  h1, h2, h3, h4 { @apply font-serif; }
+  * { box-sizing: border-box; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-navy text-cream font-sans font-medium tracking-widest uppercase text-xs px-8 py-3.5
+           transition-all duration-300 hover:bg-navy-light active:scale-95 cursor-pointer;
+  }
+  .btn-outline {
+    @apply border border-navy text-navy font-sans font-medium tracking-widest uppercase text-xs px-8 py-3.5
+           transition-all duration-300 hover:bg-navy hover:text-cream active:scale-95 cursor-pointer;
+  }
+  .btn-ghost {
+    @apply text-navy font-sans font-medium tracking-widest uppercase text-xs px-4 py-2
+           transition-all duration-300 hover:text-beige cursor-pointer;
+  }
+  .section-title {
+    @apply font-serif text-3xl md:text-4xl text-navy font-medium;
+  }
+  .product-card {
+    @apply bg-white overflow-hidden cursor-pointer;
+  }
+  .input-field {
+    @apply w-full border border-beige bg-white px-4 py-3 text-sm font-sans text-navy
+           focus:outline-none focus:border-navy transition-colors duration-200;
+  }
+  .admin-card {
+    @apply bg-white border border-cream-dark p-6;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F5F0E8; }
+::-webkit-scrollbar-thumb { background: #C9B99A; }
+::-webkit-scrollbar-thumb:hover { background: #0A1628; }
+
+/* Page transition */
+.page-enter { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
