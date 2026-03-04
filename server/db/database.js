@@ -2,7 +2,7 @@ const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const db = new DatabaseSync(path.join(__dirname, 'anaqa.db'));
+const db = new DatabaseSync(process.env.DB_PATH || path.join(__dirname, 'anaqa.db'));
 
 // Enable WAL mode and foreign keys
 db.exec("PRAGMA journal_mode = WAL");
