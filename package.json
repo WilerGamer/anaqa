@@ -9,6 +9,6 @@
     "dev:client": "cd client && npm run dev"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }
