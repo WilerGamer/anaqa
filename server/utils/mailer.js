@@ -1,14 +1,25 @@
 const nodemailer = require('nodemailer');
+const { Resolver } = require('dns').promises;
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+// Force IPv4 by resolving smtp.gmail.com to an A record before connecting.
+// Railway containers lack IPv6 routes, so we must avoid AAAA results.
+let _transporter = null;
+async function getTransporter() {
+  if (_transporter) return _transporter;
+  let host = 'smtp.gmail.com';
+  try {
+    const addresses = await new Resolver().resolve4('smtp.gmail.com');
+    if (addresses.length > 0) host = addresses[0];
+  } catch (_) { /* fall back to hostname */ }
+  _transporter = nodemailer.createTransport({
+    host,
+    port: 587,
+    secure: false,
+    tls: { servername: 'smtp.gmail.com' },
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+  });
+  return _transporter;
+}
 
 function isConfigured() {
   return process.env.GMAIL_USER && !process.env.GMAIL_USER.includes('your_gmail');
@@ -87,7 +98,8 @@ async function sendOrderNotification(order, items) {
     `
   );
 
-  await transporter.sendMail({
+  const t = await getTransporter();
+  await t.sendMail({
     from: `"Anaqa Store" <${process.env.GMAIL_USER}>`,
     to: process.env.STORE_EMAIL || process.env.GMAIL_USER,
     subject: `🛍️ New Order #${order.id} — ${order.customer_name} (${fmt(order.total)})`,
@@ -141,7 +153,8 @@ async function sendOrderConfirmation(order, items) {
     `
   );
 
-  await transporter.sendMail({
+  const t = await getTransporter();
+  await t.sendMail({
     from: `"Anaqa" <${process.env.GMAIL_USER}>`,
     to: order.email,
     subject: `Order Confirmed — #${order.id}`,
@@ -192,7 +205,8 @@ async function sendStatusUpdate(order) {
     `
   );
 
-  await transporter.sendMail({
+  const t = await getTransporter();
+  await t.sendMail({
     from: `"Anaqa" <${process.env.GMAIL_USER}>`,
     to: order.email,
     subject: `${msg.title} — Order #${order.id}`,
