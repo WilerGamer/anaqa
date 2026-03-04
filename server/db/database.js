@@ -1,27 +1,12 @@
-const { DatabaseSync } = require('node:sqlite');
+const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const db = new DatabaseSync(process.env.DB_PATH || path.join(__dirname, 'anaqa.db'));
+const db = new Database(process.env.DB_PATH || path.join(__dirname, 'anaqa.db'));
 
 // Enable WAL mode and foreign keys
 db.exec("PRAGMA journal_mode = WAL");
 db.exec("PRAGMA foreign_keys = ON");
-
-// ── Transaction helper (mirrors better-sqlite3 API) ───────────────────────────
-db.transaction = function(fn) {
-  return function(...args) {
-    db.exec('BEGIN');
-    try {
-      const result = fn(...args);
-      db.exec('COMMIT');
-      return result;
-    } catch (e) {
-      db.exec('ROLLBACK');
-      throw e;
-    }
-  };
-};
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 db.exec(`
