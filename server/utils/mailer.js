@@ -1,28 +1,11 @@
-const nodemailer = require('nodemailer');
-const { Resolver } = require('dns').promises;
+const { Resend } = require('resend');
 
-// Force IPv4 by resolving smtp.gmail.com to an A record before connecting.
-// Railway containers lack IPv6 routes, so we must avoid AAAA results.
-let _transporter = null;
-async function getTransporter() {
-  if (_transporter) return _transporter;
-  let host = 'smtp.gmail.com';
-  try {
-    const addresses = await new Resolver().resolve4('smtp.gmail.com');
-    if (addresses.length > 0) host = addresses[0];
-  } catch (_) { /* fall back to hostname */ }
-  _transporter = nodemailer.createTransport({
-    host,
-    port: 465,
-    secure: true,
-    tls: { servername: 'smtp.gmail.com' },
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-  });
-  return _transporter;
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 function isConfigured() {
-  return process.env.GMAIL_USER && !process.env.GMAIL_USER.includes('your_gmail');
+  return !!process.env.RESEND_API_KEY;
 }
 
 function fmt(amount) {
@@ -98,11 +81,10 @@ async function sendOrderNotification(order, items) {
     `
   );
 
-  const t = await getTransporter();
-  await t.sendMail({
-    from: `"Anaqa Store" <${process.env.GMAIL_USER}>`,
+  await getResend().emails.send({
+    from: 'Anaqa Store <onboarding@resend.dev>',
     to: process.env.STORE_EMAIL || process.env.GMAIL_USER,
-    subject: `🛍️ New Order #${order.id} — ${order.customer_name} (${fmt(order.total)})`,
+    subject: `New Order #${order.id} — ${order.customer_name} (${fmt(order.total)})`,
     html,
   });
 
@@ -153,9 +135,8 @@ async function sendOrderConfirmation(order, items) {
     `
   );
 
-  const t = await getTransporter();
-  await t.sendMail({
-    from: `"Anaqa" <${process.env.GMAIL_USER}>`,
+  await getResend().emails.send({
+    from: 'Anaqa <onboarding@resend.dev>',
     to: order.email,
     subject: `Order Confirmed — #${order.id}`,
     html,
@@ -205,9 +186,8 @@ async function sendStatusUpdate(order) {
     `
   );
 
-  const t = await getTransporter();
-  await t.sendMail({
-    from: `"Anaqa" <${process.env.GMAIL_USER}>`,
+  await getResend().emails.send({
+    from: 'Anaqa <onboarding@resend.dev>',
     to: order.email,
     subject: `${msg.title} — Order #${order.id}`,
     html,
