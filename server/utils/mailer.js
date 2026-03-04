@@ -13,8 +13,8 @@ async function getTransporter() {
   } catch (_) { /* fall back to hostname */ }
   _transporter = nodemailer.createTransport({
     host,
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     tls: { servername: 'smtp.gmail.com' },
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
   });
